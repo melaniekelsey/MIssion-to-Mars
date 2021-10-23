@@ -12,6 +12,7 @@ def scrape_all():
     browser = Browser('chrome', **executable_path, headless=True)
 
     news_title, news_paragraph = mars_news(browser)
+    hemisphere_dictionary = hem_imgs(browser)
 
     # Run all scraping functions and store results in a dictionary
     data = {
@@ -19,7 +20,9 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()
+        "last_modified": dt.datetime.now(),
+        "hemispheres": hemisphere_dictionary
+
     }
 
     # Stop webdriver and return data
@@ -99,6 +102,42 @@ def mars_facts():
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html()
+
+def hem_imgs(browser):
+    # 1. Use browser to visit the URL 
+    url = 'https://marshemispheres.com/'
+
+    browser.visit(url)
+
+# 2. Create a list to hold the images and titles.
+    # 2. Create a list to hold the images and titles.
+    hemisphere_image_urls = []
+
+# 3. Write code to retrieve the image urls and titles for each hemisphere.
+    for hemisphere_data in range(4):
+        # Browse through each page to find all 4 images
+        browser.links.find_by_partial_text('Hemisphere')[hemisphere_data].click()
+    
+        # Parse the HTML
+        html = browser.html
+        hemisphere_soup = soup(html,'html.parser')
+    
+        # Scrape to find title of image and url for image
+        title = hemisphere_soup.find('h2', class_='title').text
+        img_url = hemisphere_soup.find('li').a.get('href')
+    
+        # Put title and image url into a dictionary
+        hemispheres = {}
+        hemispheres['img_url'] = f'https://marshemispheres.com/{img_url}'
+        hemispheres['title'] = title
+        hemisphere_image_urls.append(hemispheres)
+    
+        # Browse back to repeat
+        browser.back()
+
+# 4. Print the list that holds the dictionary of each image url and title.
+        
+    return hemisphere_image_urls
 
 if __name__ == "__main__":
 
